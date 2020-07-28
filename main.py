@@ -2,13 +2,15 @@ import tkinter as tk
 from random import randint as rnd, choice
 import time
 
+n = 0
+
 class Ball:
     def __init__(self):
         self.colors = ['red', 'orange', 'yellow', 'green', 'blue']
         self.r = rnd(30, 50)
         self.x = rnd(self.r, 800 - self.r)
         self.y = rnd(self.r, 600 - self.r)
-        self.dx, self.dy = (+2, +3)
+        self.dx, self.dy = (rnd(3, 10), rnd(3, 10))
         self.ball_id = canvas.create_oval(self.x - self.r,
                                    self.y - self.r,
                                    self.x + self.r,
@@ -26,27 +28,38 @@ class Ball:
     def show(self):
         canvas.move(self.ball_id, self.dx, self.dy)
 
+    def canvas_click(event):
+        global n
+        ball.ball_click()
+        if (posx-event.x)**2 + (posy-event.y)**2<=R**2:
+            n += 50
+            print('У вас', n, 'очков!')
+        else:
+            n = 0
+            print('Мимо!')
 
+    def ball_click(self):
+        global posx, posy, R
 
-def canvas_click(event):
-    global x, y, r
-    if (x-event.x)**2 + (y-event.y)**2 <=r:
-        n +=50
-        print('У вас', n, 'очков!')
+        posx = self.x
+        posy = self.y
+        R = self.r
+
 
 def dvig():
     ball.move()
     ball.show()
     root.after(30, dvig)
 
+
 def main():
-    global root, canvas, ball, n
+    global root, canvas, ball, event
 
     root = tk.Tk()
     root.geometry('800x600')
     canvas = tk.Canvas(root, bg='white')
     canvas.pack(fill=tk.BOTH, expand=1)
-    canvas.bind('<Button-1>', canvas_click)
+    canvas.bind('<Button-1>', Ball.canvas_click)
     ball = Ball()
     dvig()
     root.mainloop()
