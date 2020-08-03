@@ -1,7 +1,6 @@
 import tkinter as tk
 from random import randint as rnd, choice
 import time
-from typing import Any, Union
 
 points = 0
 
@@ -20,9 +19,6 @@ class Ball:
                                           self.y + self.r,
                                           fill=choice(self.colors), width=0)
 
-    def chek_inside(self, x, y):
-        pass
-
     def show(self):  # двигает шар со скоростью дх ду
         canvas.move(self.ball_id, self.dx, self.dy)
 
@@ -37,8 +33,8 @@ class Ball:
 
 def blink():
     root.after(1500, deleteall)
-    ball1.__init__()
-    ball2.__init__()
+    for ball in balls:
+        ball.__init__()
     root.after(1500, blink)
 
 
@@ -47,36 +43,30 @@ def deleteall():
 
 
 def movement():  # перемещает шар по полю
-    ball2.show()
-    ball2.move()
-    ball1.show()
-    ball1.move()
+    for ball in balls:
+        ball.show()
+        ball.move()
     root.after(30, movement)
 
 
 def canvas_click_chek(event):
     global points
-    if (ball1.x - event.x) ** 2 + (ball1.y - event.y) ** 2 <= ball1.r ** 2:
-        ball1.n += 50  # считает очки при попадании в конкретный шар
-        points += 50
-    elif (ball2.x - event.x) ** 2 + (ball2.y - event.y) ** 2 <= ball2.r ** 2:
-        ball2.n += 50  # считает очки при попадании в конкретный шар
-        points += 50
-    else:
-        points = 0
+    for ball in balls:
+        if (ball.x - event.x) ** 2 + (ball.y - event.y) ** 2 <= ball.r ** 2:
+            ball.n += 50  # считает очки при попадании в конкретный шар
+            points += 50
     print(points)
 
 
 def main():
-    global canvas, root, ball1, ball2
+    global canvas, root, balls
 
     root = tk.Tk()
     root.geometry('800x600')
     canvas = tk.Canvas(root, bg='white')
     canvas.pack(fill=tk.BOTH, expand=1)
     canvas.bind('<Button-1>', canvas_click_chek)
-    ball1 = Ball()
-    ball2 = Ball()
+    balls = [Ball() for i in range(5)]
     movement()
     deleteall()
     blink()
