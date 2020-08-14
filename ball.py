@@ -30,6 +30,16 @@ class Ball:
         if self.y + self.r > 600 or self.y - self.r <= 0:
             self.dy = -self.dy
 
+    def set_coords(self):
+        canvas.coords(
+                self.ball_id,
+                self.x - self.r,
+                self.y - self.r,
+                self.x + self.r,
+                self.y + self.r
+        )
+
+
 
 class Rect:
     def __init__(self):
@@ -74,7 +84,7 @@ def movement():  # перемещает шар по полю
     for ball in balls:
         ball.show()
         ball.move()
-    root.after(130, movement)
+    root.after(30, movement)
 
 
 def canvas_click_chek(event):
