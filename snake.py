@@ -5,15 +5,16 @@ import math
 
 
 class Snake:
-    def __init__(self, pos_x, pos_y, vx, vy):
+    def __init__(self, scoords, vx, vy):
         '''
         initializing the snake, main controlable target in the game
         '''
+        self.scoords = scoords
         self.size = 40
         self.vx = vx
         self.vy = vy
-        self.pos_x = pos_x
-        self.pos_y = pos_y
+        self.pos_x = scoords[0]
+        self.pos_y = scoords[1]
         self.shape = canvas.create_rectangle(self.pos_x,
                                              self.pos_y,
                                              self.pos_x + self.size,
@@ -51,21 +52,21 @@ class Snake:
 
     def check_collision(self):
         '''
-        will must recognize the touch of the apple by the snake
+        Every tik of the game clocks this functions checks the collision of snake/snake, snake/apple
+        refreshing the free parts of the field for the new apples and increasing the snake speed
         '''
-        global speed_multiplier, body, i, snake_speed
+        global speed_multiplier, body, i, snake_speed, place
+        new_places = list(place)
         if self.pos_x == apple.pos_x and self.pos_y == apple.pos_y:
             speed_multiplier += 1
+            snake_speed = 100 + round(500 * 1.2 ** (-speed_multiplier))
             canvas.delete(apple.shape)
-            if snake.vx == 40:
-                body.append(Body(body[speed_multiplier-2].pos_x - snake.size, body[speed_multiplier-2].pos_y))
-            if snake.vx == -40:
-                body.append(Body(body[speed_multiplier-2].pos_x + snake.size, body[speed_multiplier-2].pos_y))
-            if snake.vy == 40:
-                body.append(Body(body[speed_multiplier-2].pos_x, body[speed_multiplier-2].pos_y - snake.size))
-            if snake.vy == -40:
-                body.append(Body(body[speed_multiplier - 2].pos_x, body[speed_multiplier - 2].pos_y + snake.size))
-            apple.__init__()
+            body.append(Body((body[speed_multiplier-2].pos_x, body[speed_multiplier-2].pos_y)))
+            new_places.remove((snake.pos_x, snake.pos_y))
+            for unable in body:
+                if (unable.pos_x, unable.pos_y) in new_places:
+                    new_places.remove((unable.pos_x, unable.pos_y))
+            apple.__init__(choice(new_places))
         for i in body:
             if i.pos_x == self.pos_x and i.pos_y == self.pos_y:
                 game_over()
@@ -92,8 +93,8 @@ class Snake:
 
 
 class Body(Snake):
-    def __init__(self, pos_x, pos_y, vx=None, vy=None):
-        super().__init__(pos_x, pos_y, vx, vy)
+    def __init__(self, bcoords, vx=None, vy=None):
+        super().__init__(bcoords, vx, vy)
 
     def set_body_coords(self):
         canvas.coords(self.shape,
@@ -104,11 +105,13 @@ class Body(Snake):
 
 
 class Apple:
-    def __init__(self):
-        '''initialize the apples - the main target in the game'''
+    '''An Apple class, the main target to eat in the game'''
+    def __init__(self, apple_place):
+        '''Initialise the apples at the playground with random location'''
+        self.apple_place = apple_place
         self.size = 40
-        self.pos_x = choice(x_positions)
-        self.pos_y = choice(y_positions)
+        self.pos_x = self.apple_place[0]
+        self.pos_y = self.apple_place[1]
         self.shape = canvas.create_rectangle(self.pos_x,
                                              self.pos_y,
                                              self.pos_x + self.size,
@@ -140,18 +143,21 @@ def game_over():
 
 
 def main():
-    global canvas, root, snake, apple, speed_multiplier, snake_speed, body, x_positions, y_positions
+    global canvas, root, snake, apple, speed_multiplier, snake_speed, body, x_positions, y_positions, place
     root = tk.Tk()
     speed_multiplier = 1
-    snake_speed = 500 - round(5*0.5**(-speed_multiplier))  # doesn`t work, need to put in another place and choose coorect function
+    snake_speed = 100 + round(500*1.2**(-speed_multiplier))
+    place = []
     x_positions = [40 * i for i in range(1, 12)]
     y_positions = [40 * i for i in range(1, 12)]
-    pos_x, pos_y = choice(x_positions), choice(y_positions)
+    for x in x_positions:
+        for y in y_positions:
+            place.append((x,y))
     canvas = tk.Canvas(root, width=480, height=480)
     canvas.pack()
-    snake = Snake(pos_x, pos_y, 0, 0)
-    body = [Body(snake.pos_x - snake.size, snake.pos_y)]
-    apple = Apple()
+    snake = Snake(choice(place), 0, 0)
+    body = [Body((snake.pos_x - snake.size, snake.pos_y))]
+    apple = Apple(choice(place))
     root.bind('<Down>', snake.down)
     root.bind('<Up>', snake.up)
     root.bind('<Left>', snake.left)
